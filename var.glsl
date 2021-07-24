@@ -1,3 +1,4 @@
+#pragma language glsl3
 // variables for frag shaders
 
 uniform vec3  iResolution;           // viewport resolution (in pixels)
