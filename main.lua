@@ -36,8 +36,9 @@ _APP = "Love-Shader"
 _APP_VERSION = "0.1"
 _FONT = 'console/font/OxygenMono-Regular.otf'
 _SHADER = nil
+_QMODE = false
 _STATE = "???   " -- or ERROR , or OK    .
-_KEYS = "F1] Console F2] Editor F3] Shader F4] Paste F5] Copy F6] Compile ESC] Exit"
+_KEYS = "F1] Console F2] Editor F3] Shader F4] Paste F5] Copy F6] Compile F9] QMODE ESC] Exit"
 
 clock = 0
 frame = 0
@@ -127,6 +128,7 @@ function love.update(dt)
 		console.set("set window_height_percent 100")
 		_STATUS = love.graphics.newText( love.graphics.newFont(_FONT, 12),
 		 _STATE .. _KEYS )
+		 _CANVAS = love.graphics.newCanvas(love.graphics.getWidth()/2, love.graphics.getHeight()/2)
 		once = false
 	end
 	edit:update(dt)
@@ -150,10 +152,20 @@ function love.draw()
 	local w = love.graphics.getWidth()
 	local h = love.graphics.getHeight()
 	if show_shader and _SHADER then
-		-- draw the shader, real simple right now
-		love.graphics.setShader(_SHADER)
-		love.graphics.rectangle('fill',0,0,w,h)
-		love.graphics.setShader()
+		if _QMODE then
+			-- draw to the smaller canvas and then onto the larger screen
+			love.graphics.setCanvas(_CANVAS)
+			love.graphics.setShader(_SHADER)
+			love.graphics.rectangle('fill',0,0,w/2,h/2)
+			love.graphics.setShader()
+			love.graphics.setCanvas()
+			love.graphics.draw(_CANVAS, 0, 0, 0, 2, 2)
+		else
+			-- draw the shader, real simple right now
+			love.graphics.setShader(_SHADER)
+			love.graphics.rectangle('fill',0,0,w,h)
+			love.graphics.setShader()
+		end
 	end
 	if show_editor then
 		edit:draw()
@@ -191,6 +203,8 @@ function love.keypressed(key, scancode, isrepeat)
 			love.system.setClipboardText(edit.editorBuffer:getText())
 		elseif key == 'f6' then
 			lshade(edit:getText())
+		elseif key == 'f9' then
+			_QMODE = not _QMODE
 		end
 		edit:keypressed(key)
 	end
@@ -198,6 +212,7 @@ end
 
 function love.resize(w, h)
   edit:resize(w,h)
+	_CANVAS = love.graphics.newCanvas(w/2, h/2)
 end
 
 function love.keyreleased(key, scancode)
