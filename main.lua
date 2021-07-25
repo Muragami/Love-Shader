@@ -34,7 +34,7 @@ require 'ui'
 once = true
 
 _APP = "Love-Shader"
-_APP_VERSION = "0.1"
+_APP_VERSION = "0.2"
 _FONT = 'console/font/OxygenMono-Regular.otf'
 _SHADER = nil
 _QMODE = false
