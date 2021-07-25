@@ -1,20 +1,20 @@
-// Star Nest by Pablo Roman Andrioli
-// This content is under the MIT License.
+// Star Nest
+// by Pablo Roman Andrioli, this content is under the MIT License.
 
-#define iterations 17
-#define formuparam 0.53
+#define iterations 15
+#define formuparam 0.69
 
-#define volsteps 20
+#define volsteps 10
 #define stepsize 0.1
 
 #define zoom   0.800
 #define tile   0.850
-#define speed  0.004
+#define speed  0.0004
 
 #define brightness 0.0015
 #define darkmatter 0.300
 #define distfading 0.730
-#define saturation 0.850
+#define saturation 0.450
 
 // void mainImage( out vec4 fragColor, in vec2 fragCoord )
 vec4 effect( vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords )

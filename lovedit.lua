@@ -53,7 +53,7 @@ local function drawRectangleDown(dcon, col, row, width, _height, tokenType)
   local x =  col * dcon.fontWidth
   local y =  row * dcon.fontHeight
   local width = width * dcon.fontWidth
-  local height = dcon.fontHeight * _height
+  local height = dcon.fontHeight * (_height+1)
   love.graphics.setColor(color)
   love.graphics.rectangle('fill', x, y, width, height)
 end
@@ -571,16 +571,25 @@ function LovEdit:init(conf)
   local width, height = love.graphics.getDimensions()
   self.drawContext.cols = math.floor(width  / self.drawContext.fontWidth)
   self.drawContext.rows = math.floor(height / self.drawContext.fontHeight) - 1
+	self.drawContext.w = self.drawContext.cols * self.drawContext.fontWidth
+	self.drawContext.h = self.drawContext.rows * self.drawContext.fontHeight
   self.editorBuffer = buffer.new(self.drawContext, conf.content)
 	self.editorBuffer:setName(conf.name)
 	self.mouse_aware = true
+	self.window = false
 end
 
 function LovEdit:update(dt)
 	-- if we allowed, study the mouse
 	if self.mouse_aware then
 		if love.mouse.isDown(1) then
-			self.editorBuffer:cursorGoPx(love.mouse.getX(),love.mouse.getY())
+			local mx = love.mouse.getX() - self.ulx
+			local my = love.mouse.getY() - self.uly
+			if (mx < 0) or (mx > self.drawContext.w) or (my < 0) or (my > self.drawContext.h) then
+				return
+			else
+				self.editorBuffer:cursorGoPx(mx,my)
+			end
 		end
 	end
 end
@@ -594,7 +603,19 @@ function LovEdit:wheelmoved(x,y)
 end
 
 function LovEdit:draw()
-  self.editorBuffer:drawCode()
+	if self.window then
+		love.graphics.setCanvas(self.canvas)
+		love.graphics.clear()
+		love.graphics.setBlendMode("alpha")
+		self.editorBuffer:drawCode()
+		love.graphics.setCanvas()
+		love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setBlendMode("alpha", "premultiplied")
+		love.graphics.draw(self.canvas,self.ulx,self.uly)
+		love.graphics.setBlendMode("alpha")
+	else
+  	self.editorBuffer:drawCode()
+	end
 end
 
 function LovEdit:keypressed(k)
@@ -628,6 +649,8 @@ end
 function LovEdit:resize(w,h)
 	self.drawContext.cols = math.floor(w  / self.drawContext.fontWidth)
   self.drawContext.rows = math.floor(h / self.drawContext.fontHeight) - 1
+	self.drawContext.w = self.drawContext.cols * self.drawContext.fontWidth
+	self.drawContext.h = self.drawContext.rows * self.drawContext.fontHeight
 	self.editorBuffer:newcontext(self.drawContext)
 end
 
@@ -640,7 +663,36 @@ function LovEdit:getText()
 end
 
 function LovEdit:setText(txt)
-	-- TODO
+	self.editorBuffer:setText(txt)
+end
+
+function LovEdit:getColsPx(px_width) return math.floor(px_width / self.drawContext.fontWidth) end
+function LovEdit:getRowsPx(px_height) return math.floor(px_height / self.drawContext.fontHeight) end
+
+function LovEdit:getColsPxSnap(px_width) return math.floor(px_width / self.drawContext.fontWidth) * self.drawContext.fontWidth end
+function LovEdit:getRowsPxSnap(px_height) return math.floor(px_height / self.drawContext.fontHeight) * self.drawContext.fontHeight end
+
+function LovEdit:makeWindow(w,h,x,y)
+	if w then
+		-- make us a window
+		self.window = true
+		self.ww = w
+		self.wh = h
+		self.ulx = x or 0
+		self.uly = y or 0
+		self:resize(w,h)
+		self.canvas = love.graphics.newCanvas(w, h)
+	else
+		-- nope, back to full-screen
+		self.window = false
+		self:resize(love.graphics.getWidth(),love.graphics.getHeight())
+		self.canvas = nil
+	end
+end
+
+function LovEdit:place(x,y)
+	self.ulx = x or 0
+	self.uly = y or 0
 end
 
 return LovEdit
