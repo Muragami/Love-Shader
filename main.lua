@@ -181,7 +181,7 @@ function love.draw()
 end
 
 function love.textinput(text)
-	edit:textinput(text)
+	if show_editor then edit:textinput(text) end
 end
 
 function love.keypressed(key, scancode, isrepeat)
@@ -206,7 +206,7 @@ function love.keypressed(key, scancode, isrepeat)
 		elseif key == 'f9' then
 			_QMODE = not _QMODE
 		end
-		edit:keypressed(key)
+		if show_editor then edit:keypressed(key) end
 	end
 end
 
@@ -216,4 +216,8 @@ function love.resize(w, h)
 end
 
 function love.keyreleased(key, scancode)
+end
+
+function love.wheelmoved(x, y)
+	if show_editor then edit:wheelmoved(x,y) end
 end

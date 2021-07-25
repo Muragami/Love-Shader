@@ -139,6 +139,12 @@ function buffer.new(_dcon, initialText) -- cols, rows, drawToken, drawRectangle,
       drawToken(self.dcon,self.statusLine, self.cols - #self.statusLine, 0, 'comment')
     end,
     -- cursor movement
+		cursorGoPx = function(self,px,py)
+      self.cursor.x = math.floor(px / self.dcon.fontWidth)
+			self.cursor.y = math.floor(py / self.dcon.fontHeight) + self.scroll.y
+			self:deselect()
+      self:updateView()
+    end,
     cursorUp = function(self)
       self.cursor.y = self.cursor.y - 1
       self:updateView()
@@ -424,6 +430,9 @@ function buffer.new(_dcon, initialText) -- cols, rows, drawToken, drawRectangle,
 			self.name = name or '?'
 			self:updateView()
 		end,
+		mouseDown = function(self,x,y)
+
+		end,
   }
   -- generate all select_ and move_ actions
   for _, functionName in ipairs({'Up', 'Down', 'Left', 'Right', 'JumpUp', 'JumpDown', 'JumpLeft', 'JumpRight',
@@ -564,9 +573,24 @@ function LovEdit:init(conf)
   self.drawContext.rows = math.floor(height / self.drawContext.fontHeight) - 1
   self.editorBuffer = buffer.new(self.drawContext, conf.content)
 	self.editorBuffer:setName(conf.name)
+	self.mouse_aware = true
 end
 
 function LovEdit:update(dt)
+	-- if we allowed, study the mouse
+	if self.mouse_aware then
+		if love.mouse.isDown(1) then
+			self.editorBuffer:cursorGoPx(love.mouse.getX(),love.mouse.getY())
+		end
+	end
+end
+
+function LovEdit:wheelmoved(x,y)
+	if y > 0 then
+		self.editorBuffer:moveUp()
+	elseif y < 0 then
+		self.editorBuffer:moveDown()
+	end
 end
 
 function LovEdit:draw()

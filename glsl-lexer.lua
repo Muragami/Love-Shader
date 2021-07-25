@@ -1,24 +1,28 @@
--- MIT License
---
--- Jason A. Petrasko 2021, forked from: Copyright (c) 2018 LoganDark
---
--- Permission is hereby granted, free of charge, to any person obtaining a copy
--- of this software and associated documentation files (the "Software"), to deal
--- in the Software without restriction, including without limitation the rights
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
--- copies of the Software, and to permit persons to whom the Software is
--- furnished to do so, subject to the following conditions:
---
--- The above copyright notice and this permission notice shall be included in all
--- copies or substantial portions of the Software.
---
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
--- SOFTWARE.
+--[[ MIT License
+
+Jason A. Petrasko 2021, forked from: Copyright (c) 2018 LoganDark
+
+	- now lexes GLSL (poorly) instead of Lua
+	- strips garbage at the end of tokens, like \r at the end of a line, etc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+]]
 
 function lookupify(src, list)
 	list = list or {}
@@ -42,6 +46,7 @@ local base_operators = '+-*/^%'
 
 local chars = {
 	whitespace = lookupify(' \n\t\r'),
+	garbage = lookupify('\n\r'),
 	validEscapes = lookupify('abfnrtv"\'\\'),
 	ident = lookupify(
 		base_ident .. base_digits,
@@ -143,6 +148,12 @@ return function(text)
 
 	local function pushToken(type, text)
 		text = text or getCurrentTokenText()
+
+		-- trim end \r\n garbage
+		local cnt = 0
+		local stop = text:len()
+		while chars.garbage[text:sub(0-1-cnt,1)] and cnt < stop do cnt = cnt + 1 end
+		if cnt > 0 then text = text:sub(1,stop - cnt) end
 
 		local tk = buffer[#buffer]
 
